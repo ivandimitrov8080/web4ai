@@ -1,6 +1,8 @@
 from peewee import DatabaseProxy, Model, SqliteDatabase, TextField
 
-DEFAULT_DB = ":memory:"
+from os.path import expanduser
+
+DEFAULT_DB = expanduser("~/.local/state/web4ai.sqlite")
 
 db = DatabaseProxy()
 
@@ -20,4 +22,5 @@ def init_db():
     database = SqliteDatabase(DEFAULT_DB)
     db.initialize(database)
     database.connect()
+    database.drop_tables([SearchState, FetchState])
     database.create_tables([SearchState, FetchState])
