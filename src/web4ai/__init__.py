@@ -1,0 +1,59 @@
+from fastmcp import FastMCP
+
+from requests import get
+from toon import encode
+from peewee import IntegrityError
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
+
+from web4ai.data import SearchState, FetchState
+
+mcp = FastMCP("web4ai search/fetch web content on steroids")
+
+crawler = AsyncWebCrawler(config=BrowserConfig(browser_mode="custom", cdp_url="http://localhost:9222"))
+
+@mcp.tool
+def search(query: str) -> str:
+    """Search the web for query.
+    Args:
+    query: The search terms to look up.
+    """
+    try:
+        SearchState(query=query, result="In progress.").save()
+        results = get(f"http://localhost:8080/search?q={query}&format=json").json()["results"]
+        data = [{"title": a["title"], "url": a["url"]} for a in results]
+        SearchState.update(result=data).where(SearchState.query == query).execute()
+        return encode(data)
+    except IntegrityError as e:
+        if "UNIQUE constraint failed" in str(e):
+            return "That query has already been searched. Try another one."
+        else:
+            raise
+
+@mcp.tool
+async def fetch(url: str) -> str:
+    """Fetch a url and get the content.
+    Args:
+    url: The url to fetch.
+    """
+    try:
+        FetchState(url=url, result="In progress.").save()
+        run = CrawlerRunConfig(
+            cache_mode=CacheMode.BYPASS,
+            wait_until="networkidle",
+            page_timeout=60_000,
+        )
+        r = await crawler.arun(url, config=run)
+        if r.markdown is not None:
+            FetchState.update(result=r.markdown).where(FetchState.url == url).execute()
+            return r.markdown
+        else:
+            return "Fetch returned no content."
+    except IntegrityError as e:
+        if "UNIQUE constraint failed" in str(e):
+            return "That url has already been scraped. Try another one."
+        else:
+            raise
+
+def main() -> None:
+    mcp.run()
+

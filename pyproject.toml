@@ -1,0 +1,22 @@
+[project]
+name = "web4ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ivan Kirilov Dimitrov", email = "ivan@idimitrov.dev" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "crawl4ai>=0.9.5",
+    "fastmcp>=4.1.8",
+    "peewee>=4.5.3",
+    "python-toon>=0.2.0",
+]
+
+[project.scripts]
+web4ai = "web4ai:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
