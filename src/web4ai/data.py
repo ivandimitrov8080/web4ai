@@ -1,6 +1,4 @@
-from peewee import TextField
-
-from peewee import DatabaseProxy, Model, SqliteDatabase
+from peewee import DatabaseProxy, Model, SqliteDatabase, TextField
 
 DEFAULT_DB = ":memory:"
 

@@ -1,11 +1,12 @@
-from fastmcp import FastMCP
+from asyncio import run
 
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
+from fastmcp import FastMCP
+from peewee import IntegrityError
 from requests import get
 from toon import encode
-from peewee import IntegrityError
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
 
-from web4ai.data import SearchState, FetchState
+from web4ai.data import FetchState, SearchState
 
 mcp = FastMCP("web4ai search/fetch web content on steroids")
 
@@ -55,5 +56,5 @@ async def fetch(url: str) -> str:
             raise
 
 def main() -> None:
-    mcp.run()
+    run(mcp.run_http_async())
 
