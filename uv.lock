@@ -2805,6 +2805,7 @@ source = { editable = "." }
 dependencies = [
     { name = "crawl4ai" },
     { name = "fastmcp" },
+    { name = "patchright" },
     { name = "peewee" },
     { name = "python-toon" },
 ]
@@ -2813,6 +2814,7 @@ dependencies = [
 requires-dist = [
     { name = "crawl4ai", specifier = ">=0.9.5" },
     { name = "fastmcp", specifier = ">=4.1.8" },
+    { name = "patchright", specifier = ">=1.64.4" },
     { name = "peewee", specifier = ">=4.5.3" },
     { name = "python-toon", specifier = ">=0.2.0" },
 ]

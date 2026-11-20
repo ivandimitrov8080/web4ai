@@ -10,6 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "crawl4ai>=0.9.5",
     "fastmcp>=4.1.8",
+    "patchright>=1.64.4",
     "peewee>=4.5.3",
     "python-toon>=0.2.0",
 ]
