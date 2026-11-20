@@ -4,8 +4,6 @@ from pathlib import Path
 from crawl4ai import (
     AsyncWebCrawler,
     BrowserConfig,
-    CacheMode,
-    CrawlerRunConfig,
     UndetectedAdapter,
 )
 from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
@@ -68,22 +66,6 @@ async def fetch(url: str) -> str:
             return "That url has already been scraped. Try another one."
         else:
             raise
-
-@mcp.tool
-async def browser_do(session: str, actions: str) -> str:
-    """Act on the page held by `session`. `actions` = JS to execute."""
-    r = await crawler.arun(
-        url="",
-        config=CrawlerRunConfig(
-            session_id=session,
-            js_code=actions,
-            wait_for="js:() => document.readyState === 'complete'",
-            delay_before_return_html=2,
-            cache_mode=CacheMode.BYPASS,
-        ),
-    )
-    return r.markdown.raw_markdown
-
 
 def main() -> None:
     init_db()
