@@ -30,7 +30,6 @@
           pkgs = import nixpkgs {
             inherit system;
           };
-          inherit (import ./nix { inherit pkgs; }) chromium-sandboxed;
         in
         {
           default = devenv.lib.mkShell {
@@ -53,7 +52,6 @@
                     web4ai
                     ruff
                     playwright
-                    chromium-sandboxed
                     visidata
                   ];
                 }
