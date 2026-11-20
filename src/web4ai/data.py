@@ -1,6 +1,6 @@
-from peewee import DatabaseProxy, Model, SqliteDatabase, TextField
-
 from os.path import expanduser
+
+from peewee import DatabaseProxy, Model, SqliteDatabase, TextField
 
 DEFAULT_DB = expanduser("~/.local/state/web4ai.sqlite")
 

@@ -1,6 +1,14 @@
 from asyncio import run
+from pathlib import Path
 
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
+from crawl4ai import (
+    AsyncWebCrawler,
+    BrowserConfig,
+    CacheMode,
+    CrawlerRunConfig,
+    UndetectedAdapter,
+)
+from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
 from fastmcp import FastMCP
 from peewee import IntegrityError
 from requests import get
@@ -10,7 +18,18 @@ from web4ai.data import FetchState, SearchState, init_db
 
 mcp = FastMCP("web4ai search/fetch web content on steroids")
 
-crawler = AsyncWebCrawler(config=BrowserConfig(browser_mode="custom", cdp_url="http://localhost:9222"))
+browser_config = BrowserConfig(
+    headless=False,
+    use_persistent_context=True,
+    user_data_dir=str(Path.home() / ".local/share/web4ai/profile"),
+)
+
+strategy = AsyncPlaywrightCrawlerStrategy(
+    browser_config=browser_config,
+    browser_adapter=UndetectedAdapter(),
+)
+
+crawler = AsyncWebCrawler(crawler_strategy=strategy, config=browser_config)
 
 @mcp.tool
 def search(query: str) -> str:
@@ -38,12 +57,7 @@ async def fetch(url: str) -> str:
     """
     try:
         FetchState(url=url, result="In progress.").save()
-        run = CrawlerRunConfig(
-            cache_mode=CacheMode.BYPASS,
-            wait_until="networkidle",
-            page_timeout=60_000,
-        )
-        r = await crawler.arun(url, config=run)
+        r = await crawler.arun(url)
         if r.markdown is not None:
             FetchState.update(result=r.markdown).where(FetchState.url == url).execute()
             return r.markdown
@@ -54,6 +68,22 @@ async def fetch(url: str) -> str:
             return "That url has already been scraped. Try another one."
         else:
             raise
+
+@mcp.tool
+async def browser_do(session: str, actions: str) -> str:
+    """Act on the page held by `session`. `actions` = JS to execute."""
+    r = await crawler.arun(
+        url="",
+        config=CrawlerRunConfig(
+            session_id=session,
+            js_code=actions,
+            wait_for="js:() => document.readyState === 'complete'",
+            delay_before_return_html=2,
+            cache_mode=CacheMode.BYPASS,
+        ),
+    )
+    return r.markdown.raw_markdown
+
 
 def main() -> None:
     init_db()
