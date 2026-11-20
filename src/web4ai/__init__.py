@@ -12,6 +12,7 @@ from peewee import IntegrityError
 from requests import get
 from toon import encode
 
+from web4ai.browser import register_browser_tools
 from web4ai.data import FetchState, SearchState, init_db
 
 mcp = FastMCP("web4ai search/fetch web content on steroids")
@@ -69,5 +70,6 @@ async def fetch(url: str) -> str:
 
 def main() -> None:
     init_db()
+    register_browser_tools(mcp)
     run(mcp.run_http_async())
 
