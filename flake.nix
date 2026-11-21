@@ -53,7 +53,11 @@
                     ruff
                     playwright
                     visidata
+                    chromium
                   ];
+                  env = {
+                    CHROMIUM_PATH = "${pkgs.chromium}/bin/chromium";
+                  };
                 }
               )
             ];

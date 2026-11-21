@@ -1,3 +1,5 @@
+from os import getenv
+
 from fastmcp import FastMCP
 from patchright.async_api import async_playwright
 
@@ -8,7 +10,11 @@ async def page():
     if _page is None or _page.is_closed():
         _pw = _pw or await async_playwright().start()
         _ctx = _ctx or await _pw.chromium.launch_persistent_context(
-            "/tmp/prof", channel="chrome", headless=False, no_viewport=True)
+            "/tmp/prof",
+            executable_path=getenv("CHROMIUM_PATH"),
+            channel="chrome",
+            headless=False,
+            no_viewport=True)
         _page = _ctx.pages[-1] if _ctx.pages else await _ctx.new_page()
     return _page
 
