@@ -113,7 +113,7 @@ async def _act(
 # --------------------------------------------------------------------------- #
 _SNAPSHOT_JS = ""
 with open("browser-snapshot.js", "r") as f:
-    _SNAPSHOT_JS = f.readline()
+    _SNAPSHOT_JS = f.read()
 
 async def _snapshot(page: Page, max_elements: int = 250) -> str:
     data = await page.evaluate(_SNAPSHOT_JS, {"maxElements": max_elements})
