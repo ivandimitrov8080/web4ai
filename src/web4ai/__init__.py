@@ -69,8 +69,14 @@ async def fetch(url: str) -> str:
         else:
             raise
 
+async def print_tools():
+    tools = await mcp.list_tools()
+    for tool in tools:
+        print(f"{tool.name} === {tool.description}\n---")
+
 def main() -> None:
     init_db()
     register_tools(mcp)
+    run(print_tools())
     run(mcp.run_http_async())
 

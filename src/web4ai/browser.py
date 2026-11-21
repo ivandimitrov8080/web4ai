@@ -15,21 +15,40 @@ async def page():
 def register_tools(mcp: FastMCP):
     @mcp.tool
     async def see() -> str:
+        """
+        Get the aria_snapshot of the current page.
+        """
         return await (await page()).locator("body").aria_snapshot()
     
     @mcp.tool
     async def go(url: str) -> str:
+        """
+        Visit a page in the browser.
+        """
         p = await page(); await p.goto(url); return p.url
     
     @mcp.tool
     async def click(selector: str) -> str:
+        """
+        Click an element.
+        Args:
+        selector: The selector found in aria_snapshot
+        """
         await (await page()).click(selector); return "ok"
     
     @mcp.tool
     async def type_text(selector: str, text: str) -> str:
+        """
+        Type text into an element.
+        Args:
+        selector: The selector found in aria_snapshot
+        """
         await (await page()).fill(selector, text); return "ok"
     
     @mcp.tool
     async def html() -> str:
+        """
+        Get the entire raw HTML content of the current page.
+        """
         return await (await page()).content()
     
