@@ -1,4 +1,5 @@
 from asyncio import run
+from sys import argv
 
 from fastmcp import FastMCP
 
@@ -13,8 +14,10 @@ async def print_tools():
 
 def main() -> None:
     data.init_db()
-    act.register_tools(mcp)
-    read.register_tools(mcp)
+    if "act" in argv:
+        act.register_tools(mcp)
+    if "read" in argv:
+        read.register_tools(mcp)
     run(print_tools())
     run(mcp.run_http_async())
 
