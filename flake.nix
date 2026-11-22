@@ -24,6 +24,9 @@
       eachSystem = nixpkgs.lib.genAttrs (import systems);
     in
     {
+      packages = eachSystem (system: {
+        default = inputs.self.devShells.${system}.default.config.languages.python.import ./. { };
+      });
       devShells = eachSystem (
         system:
         let
