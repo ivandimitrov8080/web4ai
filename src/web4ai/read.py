@@ -3,6 +3,10 @@ from pathlib import Path
 from crawl4ai import (
     AsyncWebCrawler,
     BrowserConfig,
+    CacheMode,
+    CrawlerRunConfig,
+    DefaultMarkdownGenerator,
+    PruningContentFilterLXML,
     UndetectedAdapter,
 )
 from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
@@ -25,6 +29,20 @@ strategy = AsyncPlaywrightCrawlerStrategy(
 )
 
 crawler = AsyncWebCrawler(crawler_strategy=strategy, config=browser_config)
+config = CrawlerRunConfig(
+    excluded_tags=["nav", "footer", "header", "aside", "form"],
+    exclude_external_links=True,
+    exclude_social_media_links=True,
+    exclude_domains=["medium.com"],
+    word_count_threshold=10,
+    remove_overlay_elements=True,
+    remove_consent_popups=True,
+    cache_mode=CacheMode.BYPASS,
+    markdown_generator=DefaultMarkdownGenerator(
+        content_filter=PruningContentFilterLXML(
+            threshold=0.45, threshold_type="dynamic", min_word_threshold=5)),
+)
+
 
 def register_tools(mcp: FastMCP):
     @mcp.tool
@@ -53,7 +71,7 @@ def register_tools(mcp: FastMCP):
         """
         try:
             FetchState(url=url, result="In progress.").save()
-            r = await crawler.arun(url)
+            r = await crawler.arun(url, config=config)
             if r.markdown is not None:
                 FetchState.update(result=r.markdown).where(FetchState.url == url).execute()
                 return r.markdown
