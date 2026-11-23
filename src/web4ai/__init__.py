@@ -3,7 +3,7 @@ from asyncio import run
 
 from fastmcp import FastMCP
 
-from web4ai import act, data, read
+from web4ai import act, read
 
 mcp = FastMCP("web4ai search/fetch web content on steroids")
 
@@ -18,16 +18,27 @@ async def print_tools():
     for tool in tools:
         print(tool.name)
 
-def main() -> None:
+
+async def call_tool(tool: str, args: list[str]):
+    match tool:
+        case "fetch":
+            return await read.fetch(args[0], pattern=args[1] if len(args) > 1 else ".*")
+        case "search":
+            return read.search(args[0])
+
+
+def main() -> str | None:
     parser = argparse.ArgumentParser(
                     prog='ProgramName',
                     description='What the program does',
                     epilog='Text at the bottom of help')
+    parser.add_argument("--call")
     parser.add_argument('-p', "--port", default="8000")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("-t", "--tools", default="act,read")
-    args = parser.parse_args()
-    data.init_db()
+    args, extra = parser.parse_known_args()
+    if args.call:
+        return run(call_tool(args.call, extra))
     run(register_tools(args.tools))
     run(print_tools())
     mcp.run(transport="http", host=args.host, port=int(args.port))

@@ -12,11 +12,10 @@ from crawl4ai import (
 )
 from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
 from fastmcp import FastMCP
-from peewee import IntegrityError
 from requests import get
 from toon import encode
 
-from web4ai.data import FetchState, SearchState
+from web4ai.util import rg
 
 crawler_lock = Lock()
 
@@ -40,51 +39,37 @@ config = CrawlerRunConfig(
     word_count_threshold=10,
     remove_overlay_elements=True,
     remove_consent_popups=True,
-    cache_mode=CacheMode.BYPASS,
+    cache_mode=CacheMode.ENABLED,
     markdown_generator=DefaultMarkdownGenerator(
         content_filter=PruningContentFilterLXML(
             threshold=0.45, threshold_type="dynamic", min_word_threshold=5)),
 )
 
+def search(query: str) -> str:
+    """Search the web for query.
+    Args:
+    query: The search terms to look up.
+    """
+    results = get(f"http://localhost:8080/search?q={query}&format=json").json()["results"]
+    data = [{"title": a["title"], "url": a["url"]} for a in results]
+    return encode(data)
+
+
+async def fetch(url: str, pattern: str = ".*") -> str:
+    """Fetch a url and get the content with line numbers. Optionally use RipGrep to filter large output.
+    Max 1000 lines will be returned.
+    Args:
+    url: The url to fetch.
+    pattern: A RipGrep regex pattern to use for filtering content.
+    """
+    async with crawler_lock:
+        r = await crawler.arun(url, config=config)
+    if r.markdown is not None:
+        return rg(r.markdown, pattern)
+    else:
+        return "Fetch returned no content."
 
 async def register_tools(mcp: FastMCP):
     await crawler.start()
-    @mcp.tool
-    def search(query: str) -> str:
-        """Search the web for query.
-        Args:
-        query: The search terms to look up.
-        """
-        try:
-            SearchState(query=query, result="In progress.").save()
-            results = get(f"http://localhost:8080/search?q={query}&format=json").json()["results"]
-            data = [{"title": a["title"], "url": a["url"]} for a in results]
-            SearchState.update(result=data).where(SearchState.query == query).execute()
-            return encode(data)
-        except IntegrityError as e:
-            if "UNIQUE constraint failed" in str(e):
-                return "That query has already been searched. Try another one."
-            else:
-                raise
-
-    @mcp.tool
-    async def fetch(url: str) -> str:
-        """Fetch a url and get the content.
-        Args:
-        url: The url to fetch.
-        """
-        try:
-            FetchState(url=url, result="In progress.").save()
-            async with crawler_lock:
-                r = await crawler.arun(url, config=config)
-            if r.markdown is not None:
-                FetchState.update(result=r.markdown).where(FetchState.url == url).execute()
-                return r.markdown
-            else:
-                return "Fetch returned no content."
-        except IntegrityError as e:
-            if "UNIQUE constraint failed" in str(e):
-                return "That url has already been scraped. Try another one."
-            else:
-                raise
-
+    mcp.add_tool(search)
+    mcp.add_tool(fetch)
