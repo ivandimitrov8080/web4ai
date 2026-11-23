@@ -55,17 +55,27 @@ def search(query: str) -> str:
     return encode(data)
 
 
-async def fetch(url: str, pattern: str = ".*") -> str:
+async def fetch(url: str, pattern: str = ".*", start = 1, end = 10_000_000) -> str:
     """Fetch a url and get the content with line numbers. Optionally use RipGrep to filter large output.
-    Max 1000 lines will be returned.
+    Max 500 lines will be returned. Workflow is like so:
+    If page is small and 500 lines are enough then it works.
+    If 500 lines are not enough then:
+    1. Filter for a match to get the line number
+    2. Use the tool again to get a range of lines for the content without a regex pattern (default is .*)
+
     Args:
     url: The url to fetch.
-    pattern: A RipGrep regex pattern to use for filtering content.
+
+    Optional args:
+    pattern: A RipGrep regex pattern to use for filtering content. Default: .*
+    start: The start line before filtering with a pattern. Default: 1
+    end: The end line before filtering with a pattern. Default: 10_000_000
     """
     async with crawler_lock:
         r = await crawler.arun(url, config=config)
     if r.markdown is not None:
-        return rg(r.markdown, pattern)
+        lines = r.markdown.splitlines()[start-1:end]
+        return rg(lines.join("\n"), pattern)
     else:
         return "Fetch returned no content."
 
