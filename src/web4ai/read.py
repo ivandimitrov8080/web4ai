@@ -20,7 +20,7 @@ from web4ai.util import rg
 crawler_lock = Lock()
 
 browser_config = BrowserConfig(
-    headless=True,
+    headless=False,
     use_persistent_context=True,
     user_data_dir=str(Path.home() / ".local/share/web4ai/profile"),
 )
@@ -80,6 +80,5 @@ async def fetch(url: str, pattern: str = ".*", start = 1, end = 10_000_000) -> s
         return "Fetch returned no content."
 
 async def register_tools(mcp: FastMCP):
-    await crawler.start()
-    mcp.add_tool(search)
-    mcp.add_tool(fetch)
+    mcp.tool(search)
+    mcp.tool(fetch)

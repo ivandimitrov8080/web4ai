@@ -1,11 +1,20 @@
 import argparse
 from asyncio import run
+from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
 
 from web4ai import act, read
 
-mcp = FastMCP("web4ai search/fetch web content on steroids")
+@asynccontextmanager
+async def lifespan(_):
+    await read.crawler.start()
+    try:
+        yield {}
+    finally:
+        await read.crawler.close()
+
+mcp = FastMCP("web4ai search/fetch web content on steroids", lifespan=lifespan)
 
 async def register_tools(tools):
     if "act" in tools:
