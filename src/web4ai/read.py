@@ -20,7 +20,7 @@ from web4ai.util import rg
 crawler_lock = Lock()
 
 browser_config = BrowserConfig(
-    headless=False,
+    headless=True,
     use_persistent_context=True,
     user_data_dir=str(Path.home() / ".local/share/web4ai/profile"),
 )
