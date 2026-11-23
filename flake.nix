@@ -24,9 +24,25 @@
       eachSystem = nixpkgs.lib.genAttrs (import systems);
     in
     {
-      packages = eachSystem (system: {
-        default = inputs.self.devShells.${system}.default.config.languages.python.import ./. { };
-      });
+      packages = eachSystem (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+          };
+        in
+        {
+          default =
+            (inputs.self.devShells.${system}.default.config.languages.python.import ./. { }).overrideAttrs
+              (old: {
+                buildInputs = old.buildInputs or [ ] ++ [ pkgs.chromium ];
+                nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
+                postFixup = old.postFixup or "" + ''
+                  wrapProgram $out/bin/web4ai --set CHROMIUM_PATH ${pkgs.chromium}/bin/chromium
+                '';
+              });
+        }
+      );
       devShells = eachSystem (
         system:
         let
