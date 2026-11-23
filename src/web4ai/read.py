@@ -1,3 +1,4 @@
+from asyncio import Lock
 from pathlib import Path
 
 from crawl4ai import (
@@ -17,8 +18,10 @@ from toon import encode
 
 from web4ai.data import FetchState, SearchState
 
+crawler_lock = Lock()
+
 browser_config = BrowserConfig(
-    headless=False,
+    headless=True,
     use_persistent_context=True,
     user_data_dir=str(Path.home() / ".local/share/web4ai/profile"),
 )
@@ -44,7 +47,8 @@ config = CrawlerRunConfig(
 )
 
 
-def register_tools(mcp: FastMCP):
+async def register_tools(mcp: FastMCP):
+    await crawler.start()
     @mcp.tool
     def search(query: str) -> str:
         """Search the web for query.
@@ -71,7 +75,8 @@ def register_tools(mcp: FastMCP):
         """
         try:
             FetchState(url=url, result="In progress.").save()
-            r = await crawler.arun(url, config=config)
+            async with crawler_lock:
+                r = await crawler.arun(url, config=config)
             if r.markdown is not None:
                 FetchState.update(result=r.markdown).where(FetchState.url == url).execute()
                 return r.markdown

@@ -7,11 +7,11 @@ from web4ai import act, data, read
 
 mcp = FastMCP("web4ai search/fetch web content on steroids")
 
-def register_tools(tools):
+async def register_tools(tools):
     if "act" in tools:
         act.register_tools(mcp)
     if "read" in tools:
-        read.register_tools(mcp)
+        await read.register_tools(mcp)
 
 async def print_tools():
     tools = await mcp.list_tools()
@@ -28,6 +28,6 @@ def main() -> None:
     parser.add_argument("-t", "--tools", default="act,read")
     args = parser.parse_args()
     data.init_db()
-    register_tools(args.tools)
+    run(register_tools(args.tools))
     run(print_tools())
     mcp.run(transport="http", host=args.host, port=int(args.port))
