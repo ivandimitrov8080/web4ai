@@ -35,7 +35,12 @@
           default =
             (inputs.self.devShells.${system}.default.config.languages.python.import ./. { }).overrideAttrs
               (old: {
-                buildInputs = old.buildInputs or [ ] ++ [ pkgs.chromium ];
+                buildInputs =
+                  old.buildInputs or [ ]
+                  ++ (with pkgs; [
+                    chromium
+                    ripgrep
+                  ]);
                 nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
                 postFixup = old.postFixup or "" + ''
                   wrapProgram $out/bin/web4ai --set CHROMIUM_PATH ${pkgs.chromium}/bin/chromium
