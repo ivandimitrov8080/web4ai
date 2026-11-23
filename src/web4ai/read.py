@@ -75,7 +75,7 @@ async def fetch(url: str, pattern: str = ".*", start = 1, end = 10_000_000) -> s
         r = await crawler.arun(url, config=config)
     if r.markdown is not None:
         lines = r.markdown.splitlines()[start-1:end]
-        return rg(lines.join("\n"), pattern)
+        return rg("\n".join(lines), pattern)
     else:
         return "Fetch returned no content."
 
