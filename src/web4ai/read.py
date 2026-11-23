@@ -50,7 +50,7 @@ def search(query: str) -> str:
     Args:
     query: The search terms to look up.
     """
-    results = get(f"http://localhost:8080/search?q={query}&format=json").json()["results"]
+    results = get("http://localhost:8080/search", params={"q": query, "format": "json"}).json()["results"]
     data = [{"title": a["title"], "url": a["url"]} for a in results]
     return encode(data)
 
