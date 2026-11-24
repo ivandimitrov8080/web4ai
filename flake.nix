@@ -43,7 +43,9 @@
                   ]);
                 nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
                 postFixup = old.postFixup or "" + ''
-                  wrapProgram $out/bin/web4ai --set CHROMIUM_PATH ${pkgs.chromium}/bin/chromium
+                  wrapProgram $out/bin/web4ai \
+                    --set CRAWL4AI_NO_CLOUD_NOTICE 1 \
+                    --set PYDANTIC_AI_NO_BANNER 1
                 '';
               });
         }

@@ -1,5 +1,6 @@
 import subprocess
 
+
 def rg(src: str, pattern: str):
     result = subprocess.run(["rg", "-n", "-m", "500", pattern], input=src, text=True, capture_output=True)
     match result.returncode:

@@ -1,60 +1,49 @@
-from os import getenv
-
 from fastmcp import FastMCP
-from patchright.async_api import async_playwright
 
-_pw = _ctx = _page = None
+from web4ai.lifespan import BrowserCtx
 
-async def page():
-    global _pw, _ctx, _page
-    if _page is None or _page.is_closed():
-        _pw = _pw or await async_playwright().start()
-        _ctx = _ctx or await _pw.chromium.launch_persistent_context(
-            "/tmp/prof",
-            executable_path=getenv("CHROMIUM_PATH"),
-            channel="chrome",
-            headless=False,
-            no_viewport=True)
-        _page = _ctx.pages[-1] if _ctx.pages else await _ctx.new_page()
+
+async def page(ctx: BrowserCtx):
+    _page = ctx.pages[-1] if ctx.pages else await ctx.new_page()
     return _page
 
-async def see() -> str:
+async def see(ctx: BrowserCtx) -> str:
     """
     Get the aria_snapshot of the current page.
     """
-    return await (await page()).locator("body").aria_snapshot()
+    return await (await page(ctx)).locator("body").aria_snapshot()
 
 
-async def go(url: str) -> str:
+async def go(url: str, ctx: BrowserCtx) -> str:
     """
     Visit a page in the browser.
     """
-    p = await page(); await p.goto(url); return p.url
+    p = await page(ctx); await p.goto(url); return p.url
 
 
-async def click(selector: str) -> str:
+async def click(selector: str, ctx: BrowserCtx) -> str:
     """
     Click an element.
     Args:
     selector: The selector found in aria_snapshot
     """
-    await (await page()).click(selector); return "ok"
+    await (await page(ctx)).click(selector); return "ok"
 
 
-async def type_text(selector: str, text: str) -> str:
+async def type_text(selector: str, text: str, ctx: BrowserCtx) -> str:
     """
     Type text into an element.
     Args:
     selector: The selector found in aria_snapshot
     """
-    await (await page()).fill(selector, text); return "ok"
+    await (await page(ctx)).fill(selector, text); return "ok"
 
 
-async def html() -> str:
+async def html(ctx: BrowserCtx) -> str:
     """
     Get the entire raw HTML content of the current page.
     """
-    return await (await page()).content()
+    return await (await page(ctx)).content()
     
 def register_tools(mcp: FastMCP):
     mcp.tool(see)

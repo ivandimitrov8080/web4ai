@@ -1,36 +1,16 @@
-from asyncio import Lock
-from pathlib import Path
-
 from crawl4ai import (
-    AsyncWebCrawler,
-    BrowserConfig,
     CacheMode,
     CrawlerRunConfig,
     DefaultMarkdownGenerator,
     PruningContentFilterLXML,
-    UndetectedAdapter,
 )
-from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
 from fastmcp import FastMCP
 from requests import get
 from toon import encode
 
+from web4ai.lifespan import Crawler
 from web4ai.util import rg
 
-crawler_lock = Lock()
-
-browser_config = BrowserConfig(
-    headless=True,
-    use_persistent_context=True,
-    user_data_dir=str(Path.home() / ".local/share/web4ai/profile"),
-)
-
-strategy = AsyncPlaywrightCrawlerStrategy(
-    browser_config=browser_config,
-    browser_adapter=UndetectedAdapter(),
-)
-
-crawler = AsyncWebCrawler(crawler_strategy=strategy, config=browser_config)
 config = CrawlerRunConfig(
     excluded_tags=["nav", "footer", "header", "aside", "form"],
     exclude_external_links=True,
@@ -55,7 +35,7 @@ def search(query: str) -> str:
     return encode(data)
 
 
-async def fetch(url: str, pattern: str = ".*", start = 1, end = 10_000_000) -> str:
+async def fetch(url: str, crawler: Crawler, pattern: str = ".*", start = 1, end = 10_000_000) -> str:
     """Fetch a url and get the content with line numbers. Optionally use RipGrep to filter large output.
     Max 500 lines will be returned. Workflow is like so:
     If page is small and 500 lines are enough then it works.
@@ -71,8 +51,7 @@ async def fetch(url: str, pattern: str = ".*", start = 1, end = 10_000_000) -> s
     start: The start line before filtering with a pattern. Default: 1
     end: The end line before filtering with a pattern. Default: 10_000_000
     """
-    async with crawler_lock:
-        r = await crawler.arun(url, config=config)
+    r = await crawler.arun(url, config=config)
     if r.markdown is not None:
         lines = r.markdown.splitlines()[start-1:end]
         return rg("\n".join(lines), pattern)
