@@ -14,6 +14,10 @@ async def main():
                 "go",
                 {"url": "https://www.httpbin.org/forms/post"},
             )
+            see = await client.call_tool(
+                "see",
+            )
+            print(see)
         except Exception as exc:
             print(f"{type(exc).__name__}: {exc}")
 
