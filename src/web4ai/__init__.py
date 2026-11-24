@@ -8,11 +8,11 @@ from web4ai.lifespan import web_lifespan
 
 mcp = FastMCP("web4ai search/fetch web content on steroids", lifespan=web_lifespan)
 
-async def register_tools(tools):
+def register_tools(tools):
     if "act" in tools:
         act.register_tools(mcp)
     if "read" in tools:
-        await read.register_tools(mcp)
+        read.register_tools(mcp)
 
 async def print_tools():
     tools = await mcp.list_tools()
@@ -29,6 +29,6 @@ def main() -> str | None:
     parser.add_argument("-t", "--tools", default="act,read")
     parser.add_argument("-s", "--stateless", action="store_true")
     args = parser.parse_args()
-    run(register_tools(args.tools))
+    register_tools(args.tools)
     run(print_tools())
     run(mcp.run_http_async(transport="http", host=args.host, port=int(args.port), stateless=args.stateless))

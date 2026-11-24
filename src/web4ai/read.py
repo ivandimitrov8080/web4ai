@@ -58,6 +58,6 @@ async def fetch(url: str, crawler: Crawler, pattern: str = ".*", start = 1, end 
     else:
         return "Fetch returned no content."
 
-async def register_tools(mcp: FastMCP):
+def register_tools(mcp: FastMCP):
     mcp.tool(search)
     mcp.tool(fetch)

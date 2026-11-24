@@ -1,19 +1,19 @@
+# ruff: noqa
 import asyncio
 
 from fastmcp import Client
 
-SERVER = "http://127.0.0.1:5353/mcp"
-URL = "https://raw.githubusercontent.com/NixOS/nixpkgs/master/nixos/modules/services/matrix/matrix-appservice-irc.nix"
+SERVER = "http://127.0.0.1:5354/mcp"
+
 
 
 async def main():
     async with Client(SERVER, timeout=60) as client:
         try:
-            result = await client.call_tool(
-                "fetch",
-                {"url": URL},
+            await client.call_tool(
+                "go",
+                {"url": "https://www.httpbin.org/forms/post"},
             )
-            print(result)
         except Exception as exc:
             print(f"{type(exc).__name__}: {exc}")
 

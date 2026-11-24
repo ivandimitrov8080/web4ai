@@ -4,8 +4,7 @@ from web4ai.lifespan import BrowserCtx
 
 
 async def page(ctx: BrowserCtx):
-    _page = ctx.pages[-1] if ctx.pages else await ctx.new_page()
-    return _page
+    return ctx.pages[0]
 
 async def see(ctx: BrowserCtx) -> str:
     """

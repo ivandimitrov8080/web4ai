@@ -1,31 +1,29 @@
 """Creates the shared browser resources once; inject them wherever you need."""
-from shutil import which
+from contextlib import asynccontextmanager
 from pathlib import Path
+from shutil import which
 from typing import Annotated
 
 from crawl4ai import AsyncWebCrawler, BrowserConfig, UndetectedAdapter
 from crawl4ai.async_crawler_strategy import AsyncPlaywrightCrawlerStrategy
 from fastmcp import Context
 from fastmcp.dependencies import CurrentContext, Depends
-from fastmcp.server.lifespan import lifespan   # 2.x/3.x: use @asynccontextmanager
-from playwright.async_api import BrowserContext, Playwright, async_playwright
+from fastmcp.server.lifespan import lifespan
+from patchright.async_api import BrowserContext, Playwright, async_playwright
 
 HOME = Path.home()
-
 
 @lifespan
 async def web_lifespan(_):
     pw = await async_playwright().start()
     context = await pw.chromium.launch_persistent_context(
-        user_data_dir=str(HOME / ".local/share/web4ai/profile-playwright"),
+        user_data_dir=f"{HOME}/.local/share/web4ai/profile-patchright",
         executable_path=which("chromium"),
-        headless=True,
+        headless=False,
     )
 
     browser_config = BrowserConfig(
-        headless=True,
-        use_persistent_context=True,
-        user_data_dir=str(HOME / ".local/share/web4ai/profile"),
+        headless=True
     )
     strategy = AsyncPlaywrightCrawlerStrategy(
         browser_config=browser_config,
@@ -41,17 +39,19 @@ async def web_lifespan(_):
         await context.close()
         await pw.stop()
 
+_current_context = CurrentContext()
 
-def get_playwright(ctx: Context = CurrentContext()) -> Playwright:
-    return ctx.lifespan_context["pw"]
+@asynccontextmanager
+async def get_playwright(ctx: Context = _current_context):
+    yield ctx.lifespan_context["pw"]
 
+@asynccontextmanager
+async def get_browser_context(ctx: Context = _current_context):
+    yield ctx.lifespan_context["context"]
 
-def get_browser_context(ctx: Context = CurrentContext()) -> BrowserContext:
-    return ctx.lifespan_context["context"]
-
-
-def get_crawler(ctx: Context = CurrentContext()) -> AsyncWebCrawler:
-    return ctx.lifespan_context["crawler"]
+@asynccontextmanager
+async def get_crawler(ctx: Context = _current_context):
+    yield ctx.lifespan_context["crawler"]
 
 
 PW = Annotated[Playwright, Depends(get_playwright)]
