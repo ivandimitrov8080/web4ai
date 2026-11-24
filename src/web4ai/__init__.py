@@ -45,9 +45,10 @@ def main() -> str | None:
     parser.add_argument('-p', "--port", default="8000")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("-t", "--tools", default="act,read")
+    parser.add_argument("-s", "--stateless", action="store_true")
     args, extra = parser.parse_known_args()
     if args.call:
         return run(call_tool(args.call, extra))
     run(register_tools(args.tools))
     run(print_tools())
-    mcp.run(transport="http", host=args.host, port=int(args.port))
+    run(mcp.run_http_async(transport="http", host=args.host, port=int(args.port), stateless=args.stateless))
