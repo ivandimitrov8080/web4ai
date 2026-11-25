@@ -53,7 +53,6 @@ async def get_browser_context(ctx: Context = _current_context):
 async def get_crawler(ctx: Context = _current_context):
     yield ctx.lifespan_context["crawler"]
 
-
 PW = Annotated[Playwright, Depends(get_playwright)]
 BrowserCtx = Annotated[BrowserContext, Depends(get_browser_context)]
 Crawler = Annotated[AsyncWebCrawler, Depends(get_crawler)]
