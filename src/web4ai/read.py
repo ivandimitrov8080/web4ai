@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from crawl4ai import (
     CacheMode,
     CrawlerRunConfig,
@@ -31,7 +33,7 @@ def search(query: str) -> str:
     query: The search terms to look up.
     """
     results = get("http://localhost:8080/search", params={"format": "json", "q": query}).json()["results"]
-    data = [{"title": a["title"], "url": a["url"]} for a in results]
+    data = [{"title": a["title"], "url": a["url"]} for a in results if urlparse(a["url"]).hostname]
     return encode(data)
 
 

@@ -1,6 +1,7 @@
-from fastmcp import FastMCP, Context
+from fastmcp import Context, FastMCP
 
 from web4ai.lifespan import BrowserCtx
+
 
 def get_page(ctx: Context) -> int:
     req = ctx.request_context
