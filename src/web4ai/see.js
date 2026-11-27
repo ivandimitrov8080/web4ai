@@ -54,10 +54,29 @@ const toSelector = el => {
   return parts.join(' > ');
 };
 
+const pwVisible = el => {
+  const r = el.getBoundingClientRect();
+  if (r.width <= 0 || r.height <= 0) return false;
+  const v = getComputedStyle(el).visibility;
+  return v !== 'hidden' && v !== 'collapse';
+};
+
+const clickable = el => {
+  if (!pwVisible(el)) return false;
+  const cs = getComputedStyle(el);
+  if (cs.opacity === '0' || cs.pointerEvents === 'none') return false;
+  if (el.closest('[inert]')) return false;
+  // is the point actually ours, or is something on top?
+  const r = el.getBoundingClientRect();
+  const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+  return !!hit && (el === hit || el.contains(hit));
+};
+
 const describe = el => ({
     context: context(el),
     type: el.type,
-    selector: toSelector(el)
+    selector: toSelector(el),
+    clickable: clickable(el)
 });
 
 

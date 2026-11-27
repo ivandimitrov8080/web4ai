@@ -27,7 +27,7 @@ async def page(browser: BrowserCtx, ctx: Context):
     else:
         return await browser.new_page()
 
-async def see(mode: SeeMode, browser: BrowserCtx, ctx: Context) -> str:
+async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONABLE) -> str:
     """
     Get the page contents depending on the mode.
     Args:

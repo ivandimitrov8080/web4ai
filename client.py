@@ -7,6 +7,7 @@ SERVER = "http://127.0.0.1:5353/mcp"
 
 async def call_page(client, id):
     print((await client.call_tool("see", {}, meta={"page": id})).content[0].text)
+    #print((await client.call_tool("click", {"selector": "#job-1137387 > td:nth-of-type(5) > a"}, meta={"page": id})).content[0].text)
 async def main():
     async with Client(SERVER, timeout=60) as client:
         try:
