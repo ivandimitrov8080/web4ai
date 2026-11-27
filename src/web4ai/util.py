@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 
 
 def rg(src: str, pattern: str):
@@ -11,3 +12,6 @@ def rg(src: str, pattern: str):
         case 0:
             return result.stdout
     return "Unknown state."
+
+def get_project_root() -> Path:
+    return Path(__file__).parent.parent.parent

@@ -3,6 +3,7 @@ from enum import Enum
 from fastmcp import Context, FastMCP
 
 from web4ai.lifespan import BrowserCtx
+from web4ai.util import get_project_root
 
 class SeeMode(Enum):
     ARIA = "aria"
@@ -16,7 +17,7 @@ class SeeType(Enum):
     TOGGLEABLE = "toggle"
     NAGIVATABLE = "navigate"
 
-with open("see.js", "r") as f:
+with open(f"{get_project_root()}/src/see.js", "r") as f:
     SEE = f.read()
 
 def get_page(ctx: Context) -> int:
@@ -43,8 +44,6 @@ async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONA
         ACTIONABLE: return a structure representing all actionable elements with their css selectors.
         ARIA: return an aria snapshot of the page.
     """
-    with open("see.js", "r") as f:
-        SEE = f.read()
     p = await page(browser, ctx)
     match mode:
         case SeeMode.ARIA:
