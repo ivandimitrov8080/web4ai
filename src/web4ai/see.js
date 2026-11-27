@@ -1,3 +1,37 @@
+
+(type) => {
+  const actionable = Array.from(document.querySelectorAll(selector));
+  const active = actionable.filter(enabled)
+
+  const clickableElements = active
+    .filter(isClick)
+    .filter(clickable)
+    .map(describe)
+  const fillable = active
+    .filter(isFill)
+    .map(describe)
+  const toggleable = active
+    .filter(isToggle)
+    .map(describe)
+  const navigatable = active
+    .filter(isNavigate)
+    .map(describe)
+  const selectable = active
+    .filter(isSelect)
+    .map(describe)
+
+
+  let result = {}
+  result.click = clickableElements
+  result.fill = fillable
+  result.toggle = toggleable
+  result.navigate = navigatable
+  result.select = selectable
+  return type == "all" ?
+    JSON.stringify(result, null, 2)
+    : JSON.stringify(result[type], null, 2)
+}
+
 const selector = [
   // intrinsic tags
   'a[href]', 'button', 'input', 'select', 'textarea',
@@ -10,11 +44,11 @@ const selector = [
   '[tabindex]', '[contenteditable]', '[onclick]'
 ];
 
-const actionable = Array.from(document.querySelectorAll(selector));
+
 const resolveIds = ids =>
   ids.split(/\s+/)
-     .map(id => document.getElementById(id)?.textContent?.trim())
-     .filter(Boolean).join(' ') || null;
+    .map(id => document.getElementById(id)?.textContent?.trim())
+    .filter(Boolean).join(' ') || null;
 
 const context = el =>
   resolveIds(el.getAttribute('aria-labelledby') || '') ||
@@ -73,7 +107,6 @@ const clickable = el => {
 };
 const OK_SCHEME = /^(https?|mailto|tel):$/i;
 
-// walk up to the nearest real link, else the single link it wraps
 const hrefOf = el => {
   let target = null;
   for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
@@ -96,12 +129,32 @@ const hrefOf = el => {
 };
 
 const describe = el => ({
-    context: context(el),
-    type: el.type,
-    selector: toSelector(el),
-    clickable: clickable(el),
-    href: hrefOf(el)
+  context: context(el),
+  type: el.type,
+  selector: toSelector(el),
+  href: hrefOf(el)
 });
 
+const enabled = el => {
+  if (el.matches(':disabled')) return false;          // includes fieldset[disabled]
+  if (el.getAttribute('aria-disabled') === 'true') return false;
+  if (el.closest('fieldset[disabled], [inert]')) return false;
+  return true;
+};
 
-actionable.map(e => `${JSON.stringify(describe(e), null, 2)}\n\n`).toString()
+const ROLE = el => (el.getAttribute('role') || '').toLowerCase();
+const TYPE = el => (el.getAttribute('type') || '').toLowerCase();
+
+const NON_TEXT = new Set(['checkbox', 'radio', 'submit', 'button', 'reset', 'image', 'file', 'hidden', 'range', 'color']);
+
+const isNavigate = el => !!hrefOf(el);
+const isSelect = el => el.tagName === 'SELECT' || ['listbox', 'combobox'].includes(ROLE(el));
+const isFill = el => el.tagName === 'TEXTAREA' || el.isContentEditable
+  || ['textbox', 'searchbox'].includes(ROLE(el))
+  || (el.tagName === 'INPUT' && !NON_TEXT.has(TYPE(el)));
+const isToggle = el => el.matches('input[type=checkbox],input[type=radio]')
+  || ['checkbox', 'radio', 'switch', 'option'].includes(ROLE(el));
+const isClick = el => !isNavigate(el) && (
+  el.tagName === 'BUTTON' || el.tagName === 'SUMMARY'
+  || ROLE(el) === 'button' || el.hasAttribute('onclick')
+  || el.tabIndex >= 0 || el.isContentEditable === false && ROLE(el) === 'menuitem');

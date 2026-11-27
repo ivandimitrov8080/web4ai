@@ -8,6 +8,14 @@ class SeeMode(Enum):
     ARIA = "aria"
     ACTIONABLE = "actionable"
 
+class SeeType(Enum):
+    ALL = "all"
+    CLICKABLE = "click"
+    SELECTABLE = "select"
+    FILLABLE = "fill"
+    TOGGLEABLE = "toggle"
+    NAGIVATABLE = "navigate"
+
 with open("see.js", "r") as f:
     SEE = f.read()
 
@@ -27,7 +35,7 @@ async def page(browser: BrowserCtx, ctx: Context):
     else:
         return await browser.new_page()
 
-async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONABLE) -> str:
+async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONABLE, type: SeeType = SeeType.ALL) -> str:
     """
     Get the page contents depending on the mode.
     Args:
@@ -42,7 +50,7 @@ async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONA
         case SeeMode.ARIA:
             return await p.aria_snapshot()
         case SeeMode.ACTIONABLE:
-            return await p.evaluate(SEE)
+            return await p.evaluate(SEE, type.value)
 
 
 async def go(url: str, browser: BrowserCtx, ctx: Context) -> str:
