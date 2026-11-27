@@ -20,6 +20,7 @@ async def web_lifespan(_):
         user_data_dir=f"{HOME}/.local/share/web4ai/profile-patchright",
         executable_path=which("chromium"),
         headless=False,
+        no_viewport=True,
     )
 
     browser_config = BrowserConfig(
