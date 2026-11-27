@@ -21,6 +21,7 @@ async def web_lifespan(_):
         executable_path=which("chromium"),
         headless=False,
         no_viewport=True,
+        chromium_sandbox=True,
     )
 
     browser_config = BrowserConfig(
