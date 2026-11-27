@@ -71,12 +71,36 @@ const clickable = el => {
   const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
   return !!hit && (el === hit || el.contains(hit));
 };
+const OK_SCHEME = /^(https?|mailto|tel):$/i;
+
+// walk up to the nearest real link, else the single link it wraps
+const hrefOf = el => {
+  let target = null;
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+    if (n.matches('a[href], area[href]')) { target = n; break; }
+  }
+  if (!target) {
+    const inner = el.querySelectorAll?.('a[href]') || [];
+    if (inner.length === 1) target = inner[0];
+  }
+  if (!target) return null;
+
+  const raw = target.getAttribute('href');
+  if (!raw || raw.startsWith('#')) return null;      // skip in-page anchors
+
+  try {
+    const u = new URL(target.href, document.baseURI);
+    if (!OK_SCHEME.test(u.protocol)) return null;    // drops javascript:, blob:, data:
+    return u.href;
+  } catch { return null; }
+};
 
 const describe = el => ({
     context: context(el),
     type: el.type,
     selector: toSelector(el),
-    clickable: clickable(el)
+    clickable: clickable(el),
+    href: hrefOf(el)
 });
 
 
