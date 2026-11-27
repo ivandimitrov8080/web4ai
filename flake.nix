@@ -42,10 +42,15 @@
                     ripgrep
                   ]);
                 nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
+                postInstall = ''
+                  mkdir -p $out/src
+                  cp ${./src/web4ai/see.js} $out/src/see.js
+                '';
                 postFixup = old.postFixup or "" + ''
                   wrapProgram $out/bin/web4ai \
                     --set CRAWL4AI_NO_CLOUD_NOTICE 1 \
-                    --set PYDANTIC_AI_NO_BANNER 1
+                    --set PYDANTIC_AI_NO_BANNER 1 \
+                    --set PROJECT_ROOT $out
                 '';
               });
         }
