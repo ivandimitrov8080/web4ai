@@ -39,9 +39,9 @@ async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONA
     """
     Get the page contents depending on the mode.
     Args:
-    mode:
-      ACTIONABLE: return a structure representing all actionable elements with their css selectors.
-      ARIA: return an aria snapshot of the page.
+      mode:
+        ACTIONABLE: return a structure representing all actionable elements with their css selectors.
+        ARIA: return an aria snapshot of the page.
     """
     with open("see.js", "r") as f:
         SEE = f.read()
@@ -66,12 +66,22 @@ async def click(selector: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Click an element.
     Args:
-    selector: The selector found in aria_snapshot
+    selector: The selector found in see
     """
     p = await page(browser, ctx)
     await p.click(selector);
     return "ok"
 
+async def attach(selector: str, file: str, browser: BrowserCtx, ctx: Context) -> str:
+    """
+    Attach a file.
+    Args:
+    selector: The selector found in see
+    file: Absolute path to file to attach
+    """
+    p = await page(browser, ctx)
+    await p.set_input_files(selector, file)
+    return "ok"
 
 async def type_text(selector: str, text: str, browser: BrowserCtx, ctx: Context) -> str:
     """
