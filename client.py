@@ -6,17 +6,11 @@ from fastmcp import Client
 SERVER = "http://127.0.0.1:5353/mcp"
 
 async def call_page(client, id):
-    await client.call_tool(
-        "go",
-        {"url": "https://www.example.com"},
-        meta={"page": id}
-    )
+    print((await client.call_tool("see", {}, meta={"page": id})).content[0].text)
 async def main():
     async with Client(SERVER, timeout=60) as client:
         try:
-            async with TaskGroup() as tg:
-                for i in range(10):
-                    tg.create_task(call_page(client, i))
+            await call_page(client, 0)
         except Exception as exc:
             print(f"{type(exc).__name__}: {exc}")
 

@@ -1,36 +1,57 @@
+from enum import Enum
+
 from fastmcp import Context, FastMCP
 
 from web4ai.lifespan import BrowserCtx
 
+class SeeMode(Enum):
+    ARIA = "aria"
+    ACTIONABLE = "actionable"
+
+with open("see.js", "r") as f:
+    SEE = f.read()
 
 def get_page(ctx: Context) -> int:
     req = ctx.request_context
     if req:
         meta = req.meta or {}
-        return meta["page"]
+        return meta.get("page", 0)
     else:
         return 0
 
 async def page(browser: BrowserCtx, ctx: Context):
-    pages = browser.pages
+    pages = [p for p in browser.pages if not p.is_closed()]
     idx = get_page(ctx)
-    if len(pages) > idx:
-        return browser.pages[idx]
+    if idx < len(pages):
+        return pages[idx]
     else:
         return await browser.new_page()
 
-async def see(browser: BrowserCtx, ctx: Context) -> str:
+async def see(mode: SeeMode, browser: BrowserCtx, ctx: Context) -> str:
     """
-    Get the aria_snapshot of the current page.
+    Get the page contents depending on the mode.
+    Args:
+    mode:
+      ACTIONABLE: return a structure representing all actionable elements with their css selectors.
+      ARIA: return an aria snapshot of the page.
     """
-    return await (await page(browser, ctx)).locator("body").aria_snapshot()
+    with open("see.js", "r") as f:
+        SEE = f.read()
+    p = await page(browser, ctx)
+    match mode:
+        case SeeMode.ARIA:
+            return await p.aria_snapshot()
+        case SeeMode.ACTIONABLE:
+            return await p.evaluate(SEE)
 
 
 async def go(url: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Visit a page in the browser.
     """
-    p = await page(browser, ctx); await p.goto(url); return p.url
+    p = await page(browser, ctx);
+    await p.goto(url);
+    return p.url
 
 
 async def click(selector: str, browser: BrowserCtx, ctx: Context) -> str:
@@ -39,7 +60,9 @@ async def click(selector: str, browser: BrowserCtx, ctx: Context) -> str:
     Args:
     selector: The selector found in aria_snapshot
     """
-    await (await page(browser, ctx)).click(selector); return "ok"
+    p = await page(browser, ctx)
+    await p.click(selector);
+    return "ok"
 
 
 async def type_text(selector: str, text: str, browser: BrowserCtx, ctx: Context) -> str:
@@ -49,17 +72,10 @@ async def type_text(selector: str, text: str, browser: BrowserCtx, ctx: Context)
     selector: The selector found in aria_snapshot
     """
     await (await page(browser, ctx)).fill(selector, text); return "ok"
-
-
-async def html(browser: BrowserCtx, ctx: Context) -> str:
-    """
-    Get the entire raw HTML content of the current page.
-    """
-    return await (await page(browser, ctx)).content()
     
 def register_tools(mcp: FastMCP):
     mcp.tool(see)
     mcp.tool(go)
     mcp.tool(click)
     mcp.tool(type_text)
-    mcp.tool(html)
+
