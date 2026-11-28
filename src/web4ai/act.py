@@ -16,6 +16,7 @@ class SeeType(Enum):
     FILLABLE = "fill"
     TOGGLEABLE = "toggle"
     NAGIVATABLE = "navigate"
+    FILE = "files"
 
 with open(f"{get_project_root()}/src/see.js", "r") as f:
     SEE = f.read()

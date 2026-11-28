@@ -6,6 +6,7 @@
   const clickableElements = active
     .filter(isClick)
     .filter(clickable)
+    .filter(isNotFile)
     .map(describe)
   const fillable = active
     .filter(isFill)
@@ -19,6 +20,9 @@
   const selectable = active
     .filter(isSelect)
     .map(describe)
+  const files = active
+    .filter(isFile)
+    .map(describe)
 
 
   let result = {}
@@ -27,6 +31,7 @@
   result.toggle = toggleable
   result.navigate = navigatable
   result.select = selectable
+  result.file = files
   return type == "all" ?
     JSON.stringify(result, null, 2)
     : JSON.stringify(result[type], null, 2)
@@ -158,3 +163,5 @@ const isClick = el => !isNavigate(el) && (
   el.tagName === 'BUTTON' || el.tagName === 'SUMMARY'
   || ROLE(el) === 'button' || el.hasAttribute('onclick')
   || el.tabIndex >= 0 || el.isContentEditable === false && ROLE(el) === 'menuitem');
+const isFile = el => el.type == "file"
+const isNotFile = el => !isFile(el)
