@@ -44,7 +44,7 @@
                 nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
                 postInstall = ''
                   mkdir -p $out/src
-                  cp ${./src/web4ai/see.js} $out/src/see.js
+                  cp ${./src/see.js} $out/src/see.js
                 '';
                 postFixup = old.postFixup or "" + ''
                   wrapProgram $out/bin/web4ai \
