@@ -1,6 +1,7 @@
 from enum import Enum
 
 from fastmcp import Context, FastMCP
+from urllib.parse import urljoin
 
 from web4ai.lifespan import BrowserCtx
 from web4ai.util import get_project_root
@@ -59,8 +60,8 @@ async def go(url: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Visit a page in the browser.
     """
-    p = await page(browser, ctx);
-    await p.goto(url);
+    p = await page(browser, ctx)
+    await p.goto(url)
     return p.url
 
 
@@ -73,11 +74,16 @@ async def click(selector: str, browser: BrowserCtx, ctx: Context) -> str:
     p = await page(browser, ctx)
     el = await p.query_selector(selector)
     if el:
-        type = el.get_attribute("type") or ""
-        if type != "file":
-            await el.click()
-        else:
-            return "File input should not be clicked. Use attach tool instead."
+        type = await el.get_attribute("type")
+        match type:
+            case "file":
+                return "File input should not be clicked. Use attach tool instead."
+            case _:
+                href = await el.get_attribute("href")
+                if href and not href.lower().startswith(("javascript:", "mailto:", "tel:")):
+                    url = urljoin(p.url, href)
+                    return await go(url, browser, ctx)
+                await el.click()
     else:
         return "Element not found on page."
     return "ok"
@@ -92,7 +98,7 @@ async def attach(selector: str, file: str, browser: BrowserCtx, ctx: Context) ->
     p = await page(browser, ctx)
     el = await p.query_selector(selector)
     if el:
-        type = el.get_attribute("type") or ""
+        type = await el.get_attribute("type") or ""
         if type == "file":
             await el.set_input_files(file)
         else:
