@@ -95,4 +95,5 @@ def register_tools(mcp: FastMCP):
     mcp.tool(go)
     mcp.tool(click)
     mcp.tool(type_text)
+    mcp.tool(attach)
 
