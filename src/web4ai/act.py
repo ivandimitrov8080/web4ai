@@ -68,30 +68,53 @@ async def click(selector: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Click an element.
     Args:
-    selector: The selector found in see
+      selector: The selector found in see
     """
     p = await page(browser, ctx)
-    await p.click(selector);
+    el = await p.query_selector(selector)
+    if el:
+        type = el.get_attribute("type") or ""
+        if type != "file":
+            await el.click()
+        else:
+            return "File input should not be clicked. Use attach tool instead."
+    else:
+        return "Element not found on page."
     return "ok"
 
 async def attach(selector: str, file: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Attach a file.
     Args:
-    selector: The selector found in see
-    file: Absolute path to file to attach
+      selector: The selector found in see
+      file: Absolute path to file to attach
     """
     p = await page(browser, ctx)
-    await p.set_input_files(selector, file)
+    el = await p.query_selector(selector)
+    if el:
+        type = el.get_attribute("type") or ""
+        if type == "file":
+            await el.set_input_files(file)
+        else:
+            return "Element is not of type file so files can't be attached."
+    else:
+        return "Element not found on page."
     return "ok"
 
 async def type_text(selector: str, text: str, browser: BrowserCtx, ctx: Context) -> str:
     """
     Type text into an element.
     Args:
-    selector: The selector found in aria_snapshot
+      selector: The selector found in aria_snapshot
     """
-    await (await page(browser, ctx)).fill(selector, text); return "ok"
+    p = await page(browser, ctx)
+    el = await p.query_selector(selector)
+    if el:
+        await el.fill(text)
+    else:
+        return "Element not found on page."
+    return "ok"
+
     
 def register_tools(mcp: FastMCP):
     mcp.tool(see)
