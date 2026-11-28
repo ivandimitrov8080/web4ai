@@ -133,12 +133,15 @@ const hrefOf = el => {
   } catch { return null; }
 };
 
-const describe = el => ({
-  context: context(el),
-  type: el.type,
-  selector: toSelector(el),
-  href: hrefOf(el)
-});
+const describe = el => {
+  const result = {
+    context: context(el) || undefined,
+    type: el.type || undefined,
+    selector: toSelector(el),
+    href: hrefOf(el) || undefined
+  }
+  return result
+};
 
 const enabled = el => {
   if (el.matches(':disabled')) return false;          // includes fieldset[disabled]

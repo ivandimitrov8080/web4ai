@@ -45,6 +45,8 @@ async def see(browser: BrowserCtx, ctx: Context, mode: SeeMode = SeeMode.ACTIONA
         ACTIONABLE: return a structure representing all actionable elements with their css selectors.
         ARIA: return an aria snapshot of the page.
     """
+    with open(f"{get_project_root()}/src/see.js", "r") as f:
+        SEE = f.read()
     p = await page(browser, ctx)
     match mode:
         case SeeMode.ARIA:
